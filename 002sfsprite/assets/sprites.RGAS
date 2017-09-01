@@ -1,0 +1,67 @@
+﻿{
+  "$type": "RGAS.PlatformProviders.AmstradSpriteSet, RGAS",
+  "PlusInks": {
+    "$type": "System.UInt16[], mscorlib",
+    "$values": [
+      255,
+      0,
+      1092,
+      240,
+      2032,
+      3568,
+      4000,
+      3920,
+      3842,
+      3849,
+      3855,
+      2575,
+      527,
+      95,
+      175,
+      4095
+    ]
+  },
+  "_ImageList": {
+    "$type": "System.Collections.Generic.List`1[[RGAS.SpriteBase, RGAS]], mscorlib",
+    "$values": [
+      {
+        "$type": "RGAS.CPCSprite, RGAS",
+        "Align256": false,
+        "GenerateVerticalMirror": false,
+        "GenerateHorizontalMirror": false,
+        "pixels": {
+          "$type": "System.Byte[], mscorlib",
+          "$value": "AAAAAAAGBgAAAAAAAAAAAAYFBAYAAAAAAAAABgUFBQUGAAAAAAAABgUFBQUDAAAAAAAABgUFBQUDAAAAAAAABgUEBAUDAAAAAAAABgQDAwQDAAAAAAAAAAMDAwMAAAAAAAAAAAQGBgQAAAAAAQAAAAMEBAMAAAABAQAAAAADAwAAAAABBAAAAAADAwAAAAAEAwAAAAcDAwgAAAADAwAABgQDAwQGAAADAwAGBgYDAwYGBgADAwAGAwYDAwYDBgADAwYDAwMDAwMDAwYDAwMDAwQDAwQDAwMDAwMDAwQDAwQDAwMDAAMDAwQDAwQDAwMAAA=="
+        },
+        "Width": 12,
+        "Height": 20,
+        "_guid": "590102fe-67ca-4731-90fe-5dfa4d2cfd04",
+        "_name": "nave",
+        "MaskDataInline": false,
+        "UseInLevelDesigner": false
+      }
+    ]
+  },
+  "_levelList": {
+    "$type": "System.Collections.Generic.List`1[[RGAS.GameLevel, RGAS]], mscorlib",
+    "$values": []
+  },
+  "_sound": {
+    "$type": "RGAS.SoundSet, RGAS",
+    "MusicList": {
+      "$type": "System.Collections.Generic.List`1[[RGAS.AYMusic, RGAS]], mscorlib",
+      "$values": []
+    }
+  },
+  "Mode": 0,
+  "_targetPlatform": 0,
+  "Inks": {
+    "$type": "System.Byte[], mscorlib",
+    "$value": "ABgZGg0FFwYSCQgCCxAKDw=="
+  },
+  "_formatterType": "RGAS.PlatformProviders.AmstradSpriteSet+AmstradCPCRSLibCArrayFormatter, RGAS, Version=1.2.2.0, Culture=neutral, PublicKeyToken=null",
+  "OSPlatform": "Microsoft Windows NT 5.1.2600.196608 Service Pack 3 C:\\windows\\mono\\mono-2.0\\lib\\mono\\4.5",
+  "RGASVersion": "1.2.2.0",
+  "EncodeLevelsRLE": false,
+  "OutputSpriteDimensions": false
+}
