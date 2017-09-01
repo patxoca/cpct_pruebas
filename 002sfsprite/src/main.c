@@ -49,6 +49,28 @@ u16 timer;
 void interrupt_handler(void) {
     timer++;
 }
+
+void display_u8_hex(u8 v, u8 *p) {
+    static char buffer[3];
+
+    buffer[0] = hextab[v >> 4];
+    buffer[1] = hextab[v & 15];
+    buffer[2] = 0;
+    cpct_drawStringM0(buffer, p, 4, 0);
+}
+
+#define display_fps(fps) display_u8_hex(fps, CPCT_VMEM_START)
+
+#define display_ship_coords() {                         \
+        display_u8_hex(ship.x, CPCT_VMEM_START + 10);   \
+        display_u8_hex(ship.y, CPCT_VMEM_START + 18);   \
+    }
+
+#define display_ship_old_coords() {                     \
+        display_u8_hex(ship.ox, CPCT_VMEM_START + 28);  \
+        display_u8_hex(ship.oy, CPCT_VMEM_START + 36);  \
+    }
+
 #endif
 
 
@@ -95,8 +117,11 @@ const unsigned char sprite_nave[SHIP_WIDTH * SHIP_HEIGHT] = {
 typedef struct {
     u8 x;  // cordenada X, por el momento en bytes
     u8 y;  // cordenada Y
+    u8 ox; // coordenada X anterior, se utiliza para borrar
+    u8 oy; // ídem.
     i8 dx; // velocidad X, en bytes/tiempo
     i8 dy; // velocidad Y
+    i8 dirty;
 } TShip;
 
 TShip ship;
@@ -104,12 +129,16 @@ TShip ship;
 void ship_init(void) {
     ship.x = (SCREEN_WIDTH - SHIP_WIDTH) / 2;
     ship.y = SCREEN_HEIGHT - SHIP_HEIGHT - 1;
+    ship.ox = ship.x;
+    ship.oy = ship.y;
     ship.dx = 0;
     ship.dy = 0;
+    ship.dirty = 0;
 }
 
 void ship_update(void) {
     if (ship.dx) {
+        ship.dirty = 1;
         ship.x += ship.dx;
         if (ship.x > 200) {
             // Comprueba si es negativo. Me curo en salud usando un valor
@@ -122,6 +151,7 @@ void ship_update(void) {
         }
     }
     if (ship.dy) {
+        ship.dirty = 1;
         ship.y += ship.dy;
         if (ship.y > 240) {
             // Comprueba si es negativo. Me curo en salud usando un valor
@@ -134,7 +164,7 @@ void ship_update(void) {
 }
 
 void ship_erase(void) {
-    u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x, ship.y);
+    u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.oy);
 
     cpct_drawSolidBox(p, 0, SHIP_WIDTH, SHIP_HEIGHT);
 }
@@ -143,6 +173,9 @@ void ship_draw(void) {
     u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x, ship.y);
 
     cpct_drawSprite(sprite_nave, p, SHIP_WIDTH, SHIP_HEIGHT);
+    ship.ox = ship.x;
+    ship.oy = ship.y;
+    ship.dirty = 0;
 }
 
 
@@ -221,19 +254,28 @@ void field_do(void) {
     u8 r;
 
     while (count--) {
-        /* borra estrella */
         q = line_pointers[p->y] + p->x;
-        *q = 0;
-        /* mueve estrella */
+        if (*q == p->c) {
+            // borra la estrella si su patrón de color coincide con el de la
+            // pantalla. No es 100% fiable, si se deja la nave quieta un rato
+            // las estrellas rápidas (0x44) i las lentas (0x40) pueden borrar
+            // pixels de la nave con el mismo patrón. El patrón 0x08 no se
+            // utiliza en el sprite de la nave con lo que no hay problema con
+            // las intermedias.
+            *q = 0;
+        }
+        // mueve la estrella
         p->y += p->s;
         if (p->y >= NUM_LINES) {
             r = cpct_rand();
             p->x = (r & 63) + (r & 15); /* parecido a % 80, pero mas rápido */
             p->y = r & 7;               /* equivalente % 8, pero mas rápido */;
         }
-        /* pinta estrella */
         q = line_pointers[p->y] + p->x;
-        *q = p->c;
+        if (*q == 0) {
+            // pinta la estrella si el fondo es negro.
+            *q = p->c;
+        }
         p++;
     }
 }
@@ -287,30 +329,37 @@ void main(void) {
     field_init();
     ship_init();
 
+    ship_draw();
+
 #ifdef DEBUG
     timer = 0;
     cpct_setInterruptHandler(interrupt_handler);
+    display_fps(fps);
 #endif
 
     while (1) {
         kbd_read();
+        ship_update();
+#ifdef DEBUG
+        display_ship_coords();
+        display_ship_old_coords();
+#endif
         cpct_waitVSYNC();
         /* cpct_setBorder(HW_RED); */
-        ship_erase();
-        ship_update();
+        if (ship.dirty) {
+            ship_erase();
+            ship_draw();
+        }
         field_do();
-        ship_draw();
         /* cpct_setBorder(HW_GREEN); */
 
 #ifdef DEBUG
         fps++;
         if (timer - time_last >= 300) {
-            buffer[0] = hextab[fps >> 4];
-            buffer[1] = hextab[fps & 15];
+            display_fps(fps);
             time_last = timer;
             fps = 0;
         }
-        cpct_drawStringM0(buffer, CPCT_VMEM_START, 1, 0);
 #endif
 
     }
