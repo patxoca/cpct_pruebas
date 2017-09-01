@@ -20,20 +20,21 @@
 #define NUM_COLS 80
 #define NUM_LINES 200
 
+#define SCREEN_WIDTH NUM_COLS
+#define SCREEN_HEIGHT NUM_LINES
+
 // definiendo DEBUG se muestra el número de FPS
 #undef DEBUG
-
-typedef struct {
-    u8 x; /* coordenada x, en bytes */
-    u8 y; /* coordenada y, en bytes */
-    u8 s; /* velocidad              */
-    u8 c; /* color                  */
-} TStar;
 
 /* Colores de la paleta:
  * fondo, estrella lenta, intermedia i rápida
  */
-const u8 palette[] = {HW_BLACK, HW_YELLOW, HW_PASTEL_YELLOW, HW_BRIGHT_WHITE};
+#define NUM_COLORS 9
+const u8 palette[] = {
+    HW_BLACK,
+    HW_YELLOW, HW_PASTEL_YELLOW, HW_BRIGHT_WHITE,
+    HW_WHITE, HW_MAUVE, HW_PASTEL_CYAN, HW_BRIGHT_RED, HW_BRIGHT_GREEN
+};
 const char hextab[] = "0123456789ABCDEF";
 
 /* line_pointers almacena la dirección de inicio de cada línea de la
@@ -41,6 +42,121 @@ const char hextab[] = "0123456789ABCDEF";
  * CPU).
  */
 u8 *line_pointers[NUM_LINES];
+
+#ifdef DEBUG
+u16 timer;
+
+void interrupt_handler(void) {
+    timer++;
+}
+#endif
+
+
+/*              _ _           */
+/*  ____ __ _ _(_) |_ ___ ___ */
+/* (_-< '_ \ '_| |  _/ -_|_-< */
+/* /__/ .__/_| |_|\__\___/__/ */
+/*    |_|                     */
+
+// ancho de la nave, en bytes
+#define SHIP_WIDTH 6
+#define SHIP_HEIGHT 20
+
+const unsigned char sprite_nave[SHIP_WIDTH * SHIP_HEIGHT] = {
+	0x00, 0x00, 0x14, 0x28, 0x00, 0x00,
+	0x00, 0x00, 0x78, 0x34, 0x00, 0x00,
+	0x00, 0x14, 0xF0, 0xF0, 0x28, 0x00,
+	0x00, 0x14, 0xF0, 0xF0, 0x88, 0x00,
+	0x00, 0x14, 0xF0, 0xF0, 0x88, 0x00,
+	0x00, 0x14, 0xB0, 0x70, 0x88, 0x00,
+	0x00, 0x14, 0x64, 0x98, 0x88, 0x00,
+	0x00, 0x00, 0xCC, 0xCC, 0x00, 0x00,
+	0x00, 0x00, 0x34, 0x38, 0x00, 0x00,
+	0x80, 0x00, 0x98, 0x64, 0x00, 0x40,
+	0x80, 0x00, 0x44, 0x88, 0x00, 0x40,
+	0x20, 0x00, 0x44, 0x88, 0x00, 0x10,
+	0x88, 0x00, 0xEC, 0x89, 0x00, 0x44,
+	0x88, 0x14, 0x64, 0x98, 0x28, 0x44,
+	0x88, 0x3C, 0x6C, 0x9C, 0x3C, 0x44,
+	0x88, 0x6C, 0x6C, 0x9C, 0x9C, 0x44,
+	0x9C, 0xCC, 0xCC, 0xCC, 0xCC, 0x6C,
+	0xCC, 0xCC, 0x64, 0x98, 0xCC, 0xCC,
+	0xCC, 0xCC, 0x64, 0x98, 0xCC, 0xCC,
+	0x44, 0xCC, 0x64, 0x98, 0xCC, 0x88
+};
+
+
+/*     _    _       */
+/*  __| |_ (_)_ __  */
+/* (_-< ' \| | '_ \ */
+/* /__/_||_|_| .__/ */
+/*           |_|    */
+
+typedef struct {
+    u8 x;  // cordenada X, por el momento en bytes
+    u8 y;  // cordenada Y
+    i8 dx; // velocidad X, en bytes/tiempo
+    i8 dy; // velocidad Y
+} TShip;
+
+TShip ship;
+
+void ship_init(void) {
+    ship.x = (SCREEN_WIDTH - SHIP_WIDTH) / 2;
+    ship.y = SCREEN_HEIGHT - SHIP_HEIGHT - 1;
+    ship.dx = 0;
+    ship.dy = 0;
+}
+
+void ship_update(void) {
+    if (ship.dx) {
+        ship.x += ship.dx;
+        if (ship.x > 200) {
+            // Comprueba si es negativo. Me curo en salud usando un valor
+            // ligeramente mas grande que el ancho de la pantalla (medido en
+            // pixels, por si mas adelante me animo a implementar
+            // desplazamiento pixel a pixel en lugar de byte a byte).
+            ship.x = 0;
+        } else if (ship.x > (SCREEN_WIDTH - SHIP_WIDTH)) {
+            ship.x = SCREEN_WIDTH - SHIP_WIDTH;
+        }
+    }
+    if (ship.dy) {
+        ship.y += ship.dy;
+        if (ship.y > 240) {
+            // Comprueba si es negativo. Me curo en salud usando un valor
+            // ligeramente mas grande que el alto de la pantalla.
+            ship.y = 0;
+        } else if (ship.y > (SCREEN_HEIGHT - SHIP_HEIGHT)) {
+            ship.y = SCREEN_HEIGHT - SHIP_HEIGHT;
+        }
+    }
+}
+
+void ship_erase(void) {
+    u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x, ship.y);
+
+    cpct_drawSolidBox(p, 0, SHIP_WIDTH, SHIP_HEIGHT);
+}
+
+void ship_draw(void) {
+    u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x, ship.y);
+
+    cpct_drawSprite(sprite_nave, p, SHIP_WIDTH, SHIP_HEIGHT);
+}
+
+
+/*     _             __ _     _    _  */
+/*  __| |_ __ _ _ _ / _(_)___| |__| | */
+/* (_-<  _/ _` | '_|  _| / -_) / _` | */
+/* /__/\__\__,_|_| |_| |_\___|_\__,_| */
+
+typedef struct {
+    u8 x; /* coordenada x, en bytes */
+    u8 y; /* coordenada y, en bytes */
+    u8 s; /* velocidad              */
+    u8 c; /* color                  */
+} TStar;
 
 /* Tabla de estrellas.
  */
@@ -122,14 +238,38 @@ void field_do(void) {
     }
 }
 
-#ifdef DEBUG
-u16 timer;
 
-void interrupt_handler(void) {
-    timer++;
+/*  _          _         _      */
+/* | |_ ___ __| |__ _ __| |___  */
+/* |  _/ -_) _| / _` / _` / _ \ */
+/*  \__\___\__|_\__,_\__,_\___/ */
+
+void kbd_read(void) {
+    cpct_scanKeyboard();
+    ship.dx = 0;
+    ship.dy = 0;
+
+    if (cpct_isAnyKeyPressed()) {
+        if (cpct_isKeyPressed(Key_J)) {
+            ship.dx = -1;
+        }
+        if (cpct_isKeyPressed(Key_L)) {
+            ship.dx = 1;
+        }
+        if (cpct_isKeyPressed(Key_I)) {
+            ship.dy = -2;
+        }
+        if (cpct_isKeyPressed(Key_K)) {
+            ship.dy = 2;
+        }
+    }
 }
-#endif
 
+
+/*             _       */
+/*  _ __  __ _(_)_ _   */
+/* | '  \/ _` | | ' \  */
+/* |_|_|_\__,_|_|_||_| */
 
 void main(void) {
 #ifdef DEBUG
@@ -140,21 +280,28 @@ void main(void) {
 
     cpct_disableFirmware();
     cpct_setVideoMode(0);
-    cpct_setPalette(palette, 4);
+    cpct_setPalette(palette, NUM_COLORS);
     cpct_clearScreen(0);
     cpct_setBorder(HW_BLACK);
     cpct_srand8(0xFABADA);
     field_init();
+    ship_init();
+
 #ifdef DEBUG
     timer = 0;
     cpct_setInterruptHandler(interrupt_handler);
 #endif
 
     while (1) {
+        kbd_read();
         cpct_waitVSYNC();
         /* cpct_setBorder(HW_RED); */
+        ship_erase();
+        ship_update();
         field_do();
+        ship_draw();
         /* cpct_setBorder(HW_GREEN); */
+
 #ifdef DEBUG
         fps++;
         if (timer - time_last >= 300) {
@@ -163,7 +310,8 @@ void main(void) {
             time_last = timer;
             fps = 0;
         }
-        cpct_drawStringM1_f(buffer, CPCT_VMEM_START, 1, 0);
+        cpct_drawStringM0(buffer, CPCT_VMEM_START, 1, 0);
 #endif
+
     }
 }
