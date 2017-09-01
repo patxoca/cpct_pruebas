@@ -75,22 +75,24 @@ void field_init(void) {
             // color, por contra no permite que dos estrellas
             // compartan el mismo byte (lo permite pero solo una es
             // visible) y hace que la distribución de las estrellas
-            // sea "monótona" (las lentas el pixel 4, la intermedias
-            // el 3 y las rápidas el 2). En la práctica no se percibe.
+            // sea "monótona" (las lentas el pixel 2, la intermedias
+            // el 1 y las rápidas el 2). Se podria añadir una
+            // componente aleatoria para escoger un pixel u otro, pero
+            // en la práctica no se percibe.
             //
             // Para mas detalles se puede consultar:
             // http://www.cpcmania.com/Docs/Programming/Pintando_pixeles_introduccion_a_la_memoria_de_video.htm
 
         case 1:
-            p->c = 0x10; // 0001 0000: pixel 4, color 0b01 = 1
+            p->c = 0x40; // 0100 0000: pixel 1, pen 0b0000 = 0; pixel 2, pen 0b0001 = 1
             break;
 
         case 2:
-            p->c = 0x02; // 0000 0010: pixel 3, color 0b10 = 2
+            p->c = 0x08; // 0000 1000: pixel 1, pen 0b0010 = 2; pixel 2, pen 0b0000 = 0
             break;
 
         case 3:
-            p->c = 0x44; // 0100 0100: pixel 2, color 0b11 = 3
+            p->c = 0x44; // 0100 0100: pixel 1, pen 0b0000 = 0; pixel 2, pen 0b0011 = 3
             break;
         }
     }
@@ -137,6 +139,7 @@ void main(void) {
 #endif
 
     cpct_disableFirmware();
+    cpct_setVideoMode(0);
     cpct_setPalette(palette, 4);
     cpct_clearScreen(0);
     cpct_setBorder(HW_BLACK);
