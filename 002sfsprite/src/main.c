@@ -60,7 +60,22 @@ void display_u8_hex(u8 v, u8 *p) {
     cpct_drawStringM0(buffer, p, 4, 0);
 }
 
-#define display_fps(fps) display_u8_hex(fps, CPCT_VMEM_START)
+void display_u16_hex(u16 v, u8 *p) {
+    static char buffer[5];
+
+    buffer[3] = hextab[v & 15];
+    v = v >> 4;
+    buffer[2] = hextab[v & 15];
+    v = v >> 4;
+    buffer[1] = hextab[v & 15];
+    v = v >> 4;
+    buffer[0] = hextab[v & 15];
+
+    buffer[4] = 0;
+    cpct_drawStringM0(buffer, p, 4, 0);
+}
+
+#define display_fps(fps) display_u16_hex(fps, CPCT_VMEM_START)
 
 #define display_ship_coords() {                         \
         display_u8_hex(ship.x, CPCT_VMEM_START + 10);   \
@@ -495,7 +510,7 @@ void field_init(void) {
     }
 }
 
-void field_do(void) {
+void field_do_C(void) {
     TStar *p = (TStar *)&stars;
     u8 *q;
     u8 count = NUM_STARS;
@@ -527,6 +542,10 @@ void field_do(void) {
         p++;
     }
 }
+
+extern void field_do_asm(void);
+
+#define field_do field_do_asm
 
 
 /*  _          _         _      */
@@ -564,7 +583,7 @@ void kbd_read(void) {
 void main(void) {
 #ifdef DEBUG
     u16 time_last = 0;
-    u8 fps = 0;
+    u16 fps = 0;
     char buffer[4] = "??";
 #endif
 
