@@ -16,6 +16,7 @@
 #include <cpctelera.h>
 #include <stdio.h>
 
+#define NUM_LAYERS 3
 #define NUM_STARS 24
 #define NUM_COLS 80
 #define NUM_LINES 200
@@ -210,7 +211,7 @@ void field_init(void) {
         r = cpct_rand();
         p->x = r % NUM_COLS;
         p->y = r % NUM_LINES;
-        p->s = r % 3 + 1; // tres velocidades: 1, 2 o 3
+        p->s = r % NUM_LAYERS + 1; // tres velocidades: 1, 2 o 3
         switch (p->s) {
             // La velocidad determina el color: la idea es que la
             // velocidad está relacionada con la profundidad, cuanto
