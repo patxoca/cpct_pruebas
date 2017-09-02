@@ -242,7 +242,7 @@ void field_init(void) {
             break;
 
         case 3:
-            p->c = 0x44; // 0100 0100: pixel 1, pen 0b0000 = 0; pixel 2, pen 0b0011 = 3
+            p->c = 0x04; // 0000 0100: pixel 1, pen 0b0000 = 0; pixel 2, pen 0b0010 = 2
             break;
         }
     }
