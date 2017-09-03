@@ -84,10 +84,9 @@ fda_loop:
     ;; Borra el pixel (byte) si el patrón en la memoria de vídeo
     ;; coincide con el de la estrella.
     ld a, (hl)                  ; A = *q
-    cp 3(ix)                    ; *q == p->c
+    sub 3(ix)                   ; *q == p->c
     jr nz, fda_no_erase
-    xor a
-    ld (hl), a                  ; borra la estrella
+    ld (hl), a                  ; borra la estrella. En este punto A==0
 fda_no_erase:
 
     ;; Desplaza la estrella verticalmente en funcion de su velocidad
@@ -119,16 +118,16 @@ fda_no_wrap:
     ;; Deja el resultado en HL.
     ld hl, #_line_pointers
     ld c, a                     ; Aprovechamos que tras actualizar
-                                ; p->y su nuevo valor está A
+                                ; p->y su nuevo valor está en A
     xor a
-    ld b, a                     ; BC = p->y.
+    ld b, a                     ; BC = (u16)p->y.
     add hl, bc
     add hl, bc                  ; HL = &line_pointers[p->y]
     ld c, (hl)
     inc hl
     ld b, (hl)                  ; BC = line_pointers[p->y]
     ld h, a                     ; A sigue valiendo 0
-    ld l, 0(ix)                 ; HL = p->x
+    ld l, 0(ix)                 ; HL = (u16)p->x
     add hl, bc                  ; HL = line_pointers[p->y] + p->x
 
     ;; pinta el pixel, si está en negro
