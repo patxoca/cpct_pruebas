@@ -13,6 +13,8 @@
 ;;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;------------------------------------------------------------------------------
 
+    .module helpers
+
     .area _CODE
 
     .globl _stars
@@ -137,10 +139,8 @@ fda_no_wrap:
     ld (hl), a                  ; pintar
 fda_no_paint:
 
-    inc ix                      ; p++
-    inc ix
-    inc ix
-    inc ix
+    ld bc, #4
+    add ix, bc                  ; p++
     dec e                       ; count--
     jr nz, fda_loop
 
