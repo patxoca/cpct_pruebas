@@ -95,7 +95,6 @@ fda_no_erase:
     add 2(ix)                   ; A = p->y + p->s
     cp #NUM_LINES               ; (p->y + p->z) >= NUM_LINES
     jr c, fda_no_wrap
-    jr z, fda_no_wrap
     ;; La estrella sale por la parte de abajo, se la reubica
     ;; aleatoriamente en una columna cualquiera y en una de las ocho
     ;; primeras filas.
