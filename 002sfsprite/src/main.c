@@ -426,10 +426,40 @@ void ship_update(void) {
 
 }
 
-void ship_erase(void) {
-    u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.oy);
+u8 max(u8 a, u8 b) {
+    return (a >= b) ? a : b;
+}
 
-    cpct_drawSolidBox(p, 0, SHIP_WIDTH, SHIP_HEIGHT);
+u8 abs(i8 a) {
+    return (a >= 0) ? a : -a;
+}
+
+void ship_erase(void) {
+    u8 *p = NULL; // = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.oy);
+
+    // Pinta del color de fondo las áreas que han quedado al
+    // descubierto tras el desplazamiento de la nave.
+
+    // NOTE: hay que ir con cuidado con la relación entre "x", "ox" y
+    // "dx" (resp. "y", "oy" y "dy"). La igualdad "x - ox == dx" no
+    // siempre se da, como màximo se puede afirmar que "x - ox <= dx".
+
+    if (ship.oy < ship.y) {
+        p = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.oy);
+        cpct_drawSolidBox(p, 0, SHIP_WIDTH, ship.y - ship.oy);
+    } else if (ship.oy > ship.y) {
+        p = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.y + SHIP_HEIGHT);
+        cpct_drawSolidBox(p, 0, SHIP_WIDTH, ship.oy - ship.y);
+    }
+
+    if (ship.ox < ship.x) {
+        p = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, max(ship.y, ship.oy));
+        cpct_drawSolidBox(p, 0, ship.x - ship.ox, SHIP_HEIGHT - abs(ship.y - ship.oy));
+    } else if (ship.ox > ship.x) {
+        p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x + SHIP_WIDTH, max(ship.y, ship.oy));
+        cpct_drawSolidBox(p, 0, ship.ox - ship.x, SHIP_HEIGHT - abs(ship.y - ship.oy));
+    }
+
 }
 
 void ship_draw(void) {
