@@ -434,7 +434,7 @@ u8 abs(i8 a) {
     return (a >= 0) ? a : -a;
 }
 
-void ship_erase(void) {
+void ship_erase_c(void) {
     u8 *p = NULL; // = cpct_getScreenPtr(CPCT_VMEM_START, ship.ox, ship.oy);
 
     // Pinta del color de fondo las áreas que han quedado al
@@ -459,8 +459,11 @@ void ship_erase(void) {
         p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x + SHIP_WIDTH, max(ship.y, ship.oy));
         cpct_drawSolidBox(p, 0, ship.ox - ship.x, SHIP_HEIGHT - abs(ship.y - ship.oy));
     }
-
 }
+
+void ship_erase_asm(void);
+#define ship_erase ship_erase_asm
+
 
 void ship_draw(void) {
     u8 *p = cpct_getScreenPtr(CPCT_VMEM_START, ship.x, ship.y);
